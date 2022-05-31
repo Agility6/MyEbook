@@ -21,7 +21,7 @@
 > ❗已完成功能都支持浏览器缓存
 
 ### 功能展示
-![阅读器翻页](https://media.giphy.com/media/YvOydg4l6QCAiTb1nG/giphy.gif)
+![阅读器翻页](https://media.giphy.com/media/h8J5DFKqcmKvq5D8ib/giphy.gif)
 ![字号设置](https://media.giphy.com/media/YvOydg4l6QCAiTb1nG/giphy.gif)
 ![主题设置](https://media.giphy.com/media/uGEX4ruCUQhmaDpZmS/giphy.gif)
 ![进度设置](https://media.giphy.com/media/EA7JBThgiJlKTnKmxj/giphy.gif)
