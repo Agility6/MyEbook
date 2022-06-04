@@ -6,6 +6,7 @@
 
 <script>
 import { ebookMixin } from "../../utils/mixin";
+
 import Epub from "epubjs";
 import {
   getFontFamily,
@@ -16,6 +17,8 @@ import {
   saveFontSize,
   saveTheme,
 } from "../../utils/localStorage.js";
+import { flatten } from '../../utils/book';
+
 
 global.ePub = Epub;
 export default {
@@ -48,6 +51,7 @@ export default {
     initTheme() {
       let defaultTheme = getTheme(this.fileName);
       if (!defaultTheme) {
+        console.log(defaultTheme);
         defaultTheme = this.themeList[0].name;
         saveTheme(this.fileName, defaultTheme);
       }
@@ -83,6 +87,9 @@ export default {
       // this.$store.dispatch('setMenuVisible', !this.menuVisible)
       this.setMenuVisible(!this.menuVisible);
     },
+    // 翻页的时候隐藏导航和菜单
+   
+ 
     initRendition() {
       // 展示
       this.rendition = this.book.renderTo("read", {
@@ -92,6 +99,7 @@ export default {
         method: "default",
       });
       const location = getLocation(this.fileName);
+      // console.log(location);
         // 初始化到浏览器中
         this.display(location, () => {
           this.initFontSize();
@@ -151,11 +159,46 @@ export default {
         event.stopPropagation();
       });
     },
+    // 获取当前书的封面以及信息
+    parseBook() {
+      // 获取电子书的封面
+      this.book.loaded.cover.then(cover => {
+          this.book.archive.createUrl(cover).then(url => {
+            this.setCover(url)
+          })
+        })
+      // 获取电子书的信息
+      this.book.loaded.metadata.then(metadata => {
+        this.setMetadata(metadata)
+      })
+    // 获取目录,数组中有很多数据，需要转化为一维数组,这里使用拓展运算符
+      this.book.loaded.navigation.then(nav => {
+        // console.log(nav);
+        // console.log(flatten(nav.toc));
+        // 层级判断(默认为0级目录)
+        // 判断层级目录方法
+       const navItem = flatten(nav.toc)
+      //  console.log(navItem);
 
+          function find(item, level = 0) {
+            return !item.parent ? level : find(navItem.filter(parentItem => parentItem.id === item.parent)[0], ++level)
+          }
+
+          navItem.forEach(item => {
+            item.level = find(item)
+          })
+          // console.log(navItem);
+          this.setNavigation(navItem)
+      })
+    },
     initEpub() {
-
+      // 服务器的路径
+      // 跨域处理
       const url = "http://localhost:8080/api/epub/" + this.fileName + ".epub";
-
+      // console.log(url);
+      // 使用Epub
+      // 查看url
+      // console.log(url);
       // 实例化Epub
       this.book = new Epub(url);
       // 将book传入到currentBook
@@ -163,14 +206,13 @@ export default {
       // 渲染
       this.initRendition();
       this.initGesture();
-      this.book.ready
-        .then(() => {
+      this.parseBook()
+      this.book.ready.then(() => {
           return this.book.locations.generate(
             750 * (window.innerWidth / 375) * (getFontSize(this.fileName) / 16)
           );
-
-        })
-        .then((location) => {
+      }).then((location) => {
+          // console.log(location);
           this.setBookAvailable(true);
           this.refreshLocation()
         });
